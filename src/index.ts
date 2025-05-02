@@ -69,7 +69,7 @@ app.post('/getSimilarityScore', async (c: any) => {
 	console.log('Extracted image ID:', imageId);
 
 	console.log('Querying Vectorize...');
-	let vectorQuery = await c.env.VECTORIZE.query(userVectorValues, { topK: 1, filter: { imageurl: imageId } });
+	let vectorQuery = await c.env.VECTORIZE.query(userVectorValues, { topK: 1 });
 	console.log('Vectorize query result:', vectorQuery);
 
 	if (vectorQuery.count === 0) {
