@@ -52,24 +52,38 @@ app.post('/aiImageDescription', async (c: any) => {
 });
 
 app.post('/getSimilarityScore', async (c: any) => {
+	console.log('Starting /getSimilarityScore endpoint');
 	const body = await c.req.json();
+	console.log('Received request body:', body);
 	const imageUrl = body.imageUrl;
+	console.log('Image URL:', imageUrl);
 
 	const guess = body.text;
+	console.log('User guess:', guess);
 
+	console.log('Generating vector embedding for guess...');
 	const userVectorValues = await generateVectorEmbedding(c, guess);
-	const imageId = imageUrl.match(/imagedelivery\.net\/[^/]+\/([^/]+)/)[1];
+	console.log('Generated vector values:', userVectorValues);
 
+	const imageId = imageUrl.match(/imagedelivery\.net\/[^/]+\/([^/]+)/)[1];
+	console.log('Extracted image ID:', imageId);
+
+	console.log('Querying Vectorize...');
 	let vectorQuery = await c.env.VECTORIZE.query(userVectorValues, { topK: 1, filter: { imageurl: imageId } });
+	console.log('Vectorize query result:', vectorQuery);
 
 	if (vectorQuery.count === 0) {
+		console.log('No matches found, returning default score');
 		return c.json({
 			similarityScore: 0.01,
 		});
 	}
 
+	console.log('Match found with score:', vectorQuery.matches[0].score);
+	console.log('Inserting session to DB...');
 	c.executionCtx.waitUntil(insertSessionToDB(c, vectorQuery.matches[0].score));
 
+	console.log('Returning similarity score');
 	return c.json({
 		similarityScore: vectorQuery.matches[0].score,
 	});
