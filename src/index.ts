@@ -18,37 +18,32 @@ app.use(
 	})
 );
 
-app.post('/populateVectorize', async (c: any) => {
-	const apiKey = c.req.header('API-Key');
-	if (!apiKey || apiKey !== c.env.API_KEY) {
-		return c.json({ error: 'Invalid API-Key' }, 401);
-	}
+// app.post('/populateVectorize', async (c: any) => {
+// 	const apiKey = c.req.header('API-Key');
+// 	if (!apiKey || apiKey !== c.env.API_KEY) {
+// 		return c.json({ error: 'Invalid API-Key' }, 401);
+// 	}
 
-	const body = await c.req.json();
-	const imageUrl = body.imageUrl;
+// 	const body = await c.req.json();
+// 	const imageUrl = body.imageUrl;
 
-	const aiGeneratedDescription = await c.env.ai_description.get(imageUrl);
-	const aiVectorValues = await generateVectorEmbedding(c, aiGeneratedDescription);
+// 	const aiGeneratedDescription = await c.env.ai_description.get(imageUrl);
+// 	const aiVectorValues = await generateVectorEmbedding(c, aiGeneratedDescription);
 
-	const imageId = imageUrl.match(/imagedelivery\.net\/[^/]+\/([^/]+)/)[1];
+// 	const imageId = imageUrl.match(/imagedelivery\.net\/[^/]+\/([^/]+)/)[1];
 
-	const response = await c.env.VECTORIZE.upsert([
-		{
-			id: imageId,
-			values: aiVectorValues,
-			metadata: { imageurl: imageId },
-		},
-	]);
+// 	const response = await c.env.VECTORIZE.upsert([
+// 		{
+// 			id: imageId,
+// 			values: aiVectorValues,
+// 			metadata: { imageurl: imageId },
+// 		},
+// 	]);
 
-	return c.json({ response: aiGeneratedDescription });
-});
+// 	return c.json({ response: aiGeneratedDescription });
+// });
 
 app.post('/aiImageDescription', async (c: any) => {
-	const apiKey = c.req.header('API-Key');
-	if (!apiKey || apiKey !== c.env.API_KEY) {
-		return c.json({ error: 'Invalid API-Key' }, 401);
-	}
-
 	const body = await c.req.json();
 	const imageUrl = body.imageUrl;
 
@@ -57,10 +52,6 @@ app.post('/aiImageDescription', async (c: any) => {
 });
 
 app.post('/getSimilarityScore', async (c: any) => {
-	const apiKey = c.req.header('API-Key');
-	if (!apiKey || apiKey !== c.env.API_KEY) {
-		return c.json({ error: 'Invalid API-Key' }, 401);
-	}
 	const body = await c.req.json();
 	const imageUrl = body.imageUrl;
 
@@ -72,7 +63,6 @@ app.post('/getSimilarityScore', async (c: any) => {
 	let vectorQuery = await c.env.VECTORIZE.query(userVectorValues, { topK: 1, filter: { imageurl: imageId } });
 
 	if (vectorQuery.count === 0) {
-		console.log('No matches found');
 		return c.json({
 			similarityScore: 0.01,
 		});
@@ -86,12 +76,7 @@ app.post('/getSimilarityScore', async (c: any) => {
 });
 
 app.get('/randomImageUrl', async (c: any) => {
-	const apiKey = c.req.header('API-Key');
-	if (!apiKey || apiKey !== c.env.API_KEY) {
-		return c.json({ error: 'Invalid API-Key' }, 401);
-	}
-
-	const randomNumber = Math.floor(Math.random() * 999) + 1;
+	const randomNumber = Math.floor(Math.random() * 25) + 1;
 	const url = await c.env.image_list.get(randomNumber);
 
 	if (url) {
@@ -106,11 +91,6 @@ app.get('/randomImageUrl', async (c: any) => {
 });
 
 app.get('/recentSessions', async (c: any) => {
-	const apiKey = c.req.header('API-Key');
-	if (!apiKey || apiKey !== c.env.API_KEY) {
-		return c.json({ error: 'Invalid API-Key' }, 401);
-	}
-
 	const response = await c.env.DB.prepare('SELECT * FROM Sessions ORDER BY date DESC LIMIT 10;').all();
 
 	return c.json({
